@@ -15,7 +15,6 @@ func main() {
 		log.Fatal("[configPath]", "No configurations passed")
 	}
 
-
 	// service to check the configuration changed or not.
 	_, _ = configurations.GetConfiguration()
 	configurations.HotReload()

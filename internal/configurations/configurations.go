@@ -40,11 +40,11 @@ func Init() error {
 	conf, err := loadConfiguration(getConfigPath())
 
 	if err != nil {
-		log.Println("[Configuration file]", "is the \"SAHC_CONFIG\" env variable correct, currently pointing to config file '" + getConfigPath() + "'" )
+		log.Println("[Configuration file]", "is the \"SAHC_CONFIG\" env variable correct, currently pointing to config file '"+getConfigPath()+"'")
 		return err
 	}
 
-	if err = storage.SaveConfigrations(*conf); err != nil {
+	if err = storage.SaveConfigurations(*conf); err != nil {
 		return err
 	}
 

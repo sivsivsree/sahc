@@ -7,17 +7,19 @@ import (
 	"log"
 )
 
+// Init is currently not using
 func Init() {
 
 }
 
-func SaveConfigrations(conf data.Configuration) error {
+// SaveConfigurations is used to save the conf state to leveldb
+func SaveConfigurations(conf data.Configuration) error {
 	db, err := leveldb.OpenFile(data.DB_NAME, nil)
 	defer db.Close();
 	if err != nil {
 		return err
 	}
-	log.Println("[SaveConfigrations]", conf)
+	log.Println("[SaveConfigurations]", conf)
 	confByte, err := json.Marshal(conf);
 	if err != nil {
 		return err
@@ -26,6 +28,7 @@ func SaveConfigrations(conf data.Configuration) error {
 
 }
 
+// GetConfiguration is used to get the conf state from leveldb
 func GetConfiguration() (*data.Configuration, error) {
 	db, err := leveldb.OpenFile(data.DB_NAME, nil)
 	defer db.Close();

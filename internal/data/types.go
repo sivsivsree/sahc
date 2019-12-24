@@ -7,5 +7,3 @@ type Configuration struct {
 		Interval int    `yaml:"interval"`
 	} `yaml:"services"`
 }
-
-
