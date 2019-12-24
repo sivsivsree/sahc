@@ -61,6 +61,7 @@ func GetConfiguration() (*data.Configuration, error) {
 
 }
 
+// HotReload is used to periodically check the file changes.
 func HotReload() chan bool {
 
 	if err := Init(); err != nil {
