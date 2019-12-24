@@ -1,0 +1,8 @@
+version: 0.1
+services:
+  - name: service.xom
+    interval: 10
+  - name: service.xom
+    interval: 11
+  - name: service.xom
+    interval: 16
