@@ -18,7 +18,7 @@ go-test()
 }
 
 go-run(){
-  go run ./cmd/sahc/main.go
+  SAHC_CONFIG=servers.yaml go run ./cmd/sahc/main.go
 }
 
 go-clean(){
