@@ -21,4 +21,37 @@
   - TCP streaming for realtime monitoring data and ``healthz`` endpoint for health checks.
   
 
+
+## Configuration 
+
+### 1. YAML
+
+The example of `YAML` configuration is as follows.  
+
+```
+version: 0.1
+services:
+  - name: localhost:9990
+    interval: 10
+  - name: localhost:9991
+    interval: 11
+  - name: localhost:9992
+    interval: 16
+
+```
+
+**`services`** describe all the services you need to keep checking.<br>
+    
+   Services takes in an array and consist of <br>
+    
+-  `name` : The host address.
+- `interval`:  The health check interval in seconds.
+
+
+
+> **Note:** <br> 
+>  You need to set the env variable `SAHC_CONFIG` to pass the configuration file name.
+> If not the service will fail running..
+
+
 ``[working on it..]``

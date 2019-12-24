@@ -30,16 +30,17 @@ func loadConfiguration(filename string) (*data.Configuration, error) {
 }
 
 func getConfigPath() string {
-	confPath := os.Getenv("SAHC_CONFIG")
+	confPath := os.Getenv(data.ENV_CONFIG)
 	return confPath
 }
 
-// Initialize the configuration
+// Init is the configuration
 func Init() error {
 
 	conf, err := loadConfiguration(getConfigPath())
 
 	if err != nil {
+		log.Println("[Configuration file]", "is the \"SAHC_CONFIG\" env variable correct, currently pointing to config file '" + getConfigPath() + "'" )
 		return err
 	}
 
@@ -106,7 +107,7 @@ func HotReload() chan bool {
 			case val := <-hash:
 				log.Println("File change detected, updating configurations", val)
 				if err := Init(); err != nil {
-					fmt.Println("[Configuration error]", err)
+					fmt.Println("[Configuration error] ", err)
 					clear <- true
 				}
 				prevHash = val
