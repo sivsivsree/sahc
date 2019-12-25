@@ -3,7 +3,6 @@ package data
 import (
 	"encoding/json"
 	"github.com/syndtr/goleveldb/leveldb"
-	"log"
 )
 
 type HealthJobs struct {
@@ -23,16 +22,12 @@ type Configuration struct {
 	Services []Services `yaml:"services";json:"services"`
 }
 
-func (conf *Configuration) UpdateStatus(id int, status bool) error {
+func (conf *Configuration) UpdateStatus(db *leveldb.DB, id int, status bool) error {
 
-	db, err := leveldb.OpenFile(DB_NAME, nil)
-	defer db.Close();
-	if err != nil {
-		return err
-	}
 	conf.Services[id].Status = status
-	log.Println("[UpdateStatus]", conf)
-	confByte, err := json.Marshal(conf);
+
+	// log.Println("[UpdateStatus]", conf)
+	confByte, err := json.Marshal(conf)
 	if err != nil {
 		return err
 	}

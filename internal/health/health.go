@@ -4,20 +4,23 @@ import (
 	"fmt"
 	"github.com/sivsivsree/sahc/internal/data"
 	"github.com/sivsivsree/sahc/internal/storage"
+	"github.com/syndtr/goleveldb/leveldb"
 	"log"
+	"net"
 	"sync"
 	"time"
 )
 
 // StartMonit will start monitoring the services defined
 
-func StartMonit(runningSrv chan<- data.HealthJobs, m *sync.Mutex) {
+func StartMonit(runningSrv chan<- data.HealthJobs, m *sync.Mutex, db *leveldb.DB) {
 
 	wg := sync.WaitGroup{}
 
 	log.Println("[StartMonit]", "Load config")
 	m.Lock()
-	config, err := storage.GetConfiguration()
+
+	config, err := storage.GetConfiguration(db)
 
 	if err != nil {
 		log.Println("[StartMonit]", err)
@@ -27,13 +30,13 @@ func StartMonit(runningSrv chan<- data.HealthJobs, m *sync.Mutex) {
 
 		wg.Add(1)
 
-		go func(sid int, service data.Services) {
-			running := runner(config, sid)
+		go func(sid int, service data.Services, db *leveldb.DB) {
+			running := runner(config, sid, db)
 			run := data.HealthJobs{Running: running}
 			runningSrv <- run
 			//fmt.Println("runningSrv <- run")
 			wg.Done()
-		}(sid, service)
+		}(sid, service, db)
 
 	}
 	m.Unlock()
@@ -41,7 +44,7 @@ func StartMonit(runningSrv chan<- data.HealthJobs, m *sync.Mutex) {
 
 }
 
-func runner(config *data.Configuration, sid int) chan bool {
+func runner(config *data.Configuration, sid int, db *leveldb.DB) chan bool {
 
 	service := config.Services[sid]
 
@@ -60,8 +63,8 @@ func runner(config *data.Configuration, sid int) chan bool {
 				wg := sync.WaitGroup{}
 				go func(sid int, services data.Services) {
 					wg.Add(1)
-					fmt.Println("Status check | ", "Service ID:", sid, " |  Status:", service.Status, " |  Name:", service.Name)
-					wg.Done()
+					go statusCheckAndUpdate(config, sid, &wg, db)
+
 				}(sid, service)
 
 				wg.Wait()
@@ -81,23 +84,29 @@ func runner(config *data.Configuration, sid int) chan bool {
 
 }
 
-func checkStatus() bool {
-	return true
-}
+func statusCheckAndUpdate(conf *data.Configuration, sid int, wg *sync.WaitGroup, db *leveldb.DB) {
 
-// RemoveJob is used to remove sheduled health check jobs
-func RemoveJob(svs []data.HealthJobs, index int) []data.HealthJobs {
+	status := false
+	timeout := time.Second
+	conn, _ := net.DialTimeout("tcp", conf.Services[sid].Name, timeout)
 
-	newJobList := []data.HealthJobs{}
+	if conn != nil {
+		defer conn.Close()
+		status = true
+		//fmt.Println("Opened", net.JoinHostPort("localhost", "8080"))
 
-	for i, s := range svs {
-		if i != index {
-			newJobList = append(newJobList, s)
-		}
+	} else {
+		//fmt.Println(err)
+		status = false
+		//fmt.Println("Failed", net.JoinHostPort("localhost", "8080"))
+
 	}
-	return newJobList
-}
 
-//func StopMonit() {
-//
-//}
+	if err := conf.UpdateStatus(db, sid, status); err != nil {
+		fmt.Println("Error", err)
+	}
+
+	fmt.Println("Status check | ", "Service ID:", sid, " |  Status:", conf.Services[sid].Status, " |  Name:", conf.Services[sid].Name)
+
+	wg.Done()
+}

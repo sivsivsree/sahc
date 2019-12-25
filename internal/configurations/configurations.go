@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"github.com/sivsivsree/sahc/internal/data"
 	"github.com/sivsivsree/sahc/internal/storage"
+	"github.com/syndtr/goleveldb/leveldb"
 	"gopkg.in/yaml.v2"
 	"io"
 	"io/ioutil"
@@ -24,7 +25,7 @@ func loadConfiguration(filename string) (*data.Configuration, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return conf, nil
 }
 
@@ -34,7 +35,7 @@ func getConfigPath() string {
 }
 
 // Init is the configuration
-func Init() error {
+func Init(db *leveldb.DB) error {
 
 	conf, err := loadConfiguration(getConfigPath())
 
@@ -43,28 +44,17 @@ func Init() error {
 		return err
 	}
 
-	if err = storage.SaveConfigurations(*conf); err != nil {
+	if err = storage.SaveConfigurations(*conf, db); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// GetConfiguration is used to get the configuration from storage
-func GetConfiguration() (*data.Configuration, error) {
-
-	conf, err := storage.GetConfiguration()
-	if err != nil {
-		return conf, err
-	}
-	return nil, nil
-
-}
-
 // HotReload is used to periodically check the file changes.
-func HotReload(change chan bool) chan bool {
+func HotReload(change chan bool, db *leveldb.DB) chan bool {
 
-	if err := Init(); err != nil {
+	if err := Init(db); err != nil {
 		log.Fatal("[Configuration error]", err)
 	}
 
@@ -88,7 +78,6 @@ func HotReload(change chan bool) chan bool {
 			select {
 			case <-ticker.C:
 
-
 				go func(pHash string, hash chan string) {
 
 					newFileHash, _ := md5sum(getConfigPath())
@@ -99,7 +88,6 @@ func HotReload(change chan bool) chan bool {
 
 				}(pHash, hash)
 
-
 			case <-clear:
 				ticker.Stop()
 				log.Println("[HotReload]", "Stopped")
@@ -108,7 +96,7 @@ func HotReload(change chan bool) chan bool {
 			case val := <-hash:
 
 				log.Println("File change detected, updating configurations", val)
-				if err := Init(); err != nil {
+				if err := Init(db); err != nil {
 					log.Println("[Configuration error] ", err)
 					clear <- true
 				}

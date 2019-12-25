@@ -1,8 +1,8 @@
 version: 0.1
 services:
-  - name: a:8000
+  - name: localhost:8000
     interval: 1
-  - name: d.com
+  - name: d2432342.com:80
     interval: 2
-  - name: cd.co
+  - name: facebook.com:80
     interval: 1

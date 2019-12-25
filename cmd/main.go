@@ -5,6 +5,7 @@ import (
 	"github.com/sivsivsree/sahc/internal/configurations"
 	"github.com/sivsivsree/sahc/internal/data"
 	"github.com/sivsivsree/sahc/internal/health"
+	"github.com/syndtr/goleveldb/leveldb"
 	"log"
 	"os"
 	"os/signal"
@@ -15,6 +16,12 @@ import (
 
 func main() {
 
+	db, err := leveldb.OpenFile(data.DB_NAME, nil)
+
+	if err != nil {
+		log.Fatal(err)
+
+	}
 	// for graceful shutdown of service.
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -23,22 +30,21 @@ func main() {
 	restart := make(chan bool, 30)
 
 	// service to check the configuration changed or not.
-	clear := configurations.HotReload(restart)
+	clear := configurations.HotReload(restart, db)
 
 	// run the service runner to check if the services are running or not.
-	runingSrvChan := make(chan data.HealthJobs, 100);
+	runingSrvChan := make(chan data.HealthJobs, 100)
 	var m sync.Mutex
 
 	//var runingSrvs []data.HealthJobs
 	runingSrvs := make(map[string]data.HealthJobs)
 
-	go func(chan data.HealthJobs) {
+	go func(runingSrvChan chan data.HealthJobs, db *leveldb.DB) {
 
 		var wg sync.WaitGroup
 		for {
 			select {
 			case _ = <-restart:
-
 
 				for key, rsv := range runingSrvs {
 
@@ -58,8 +64,7 @@ func main() {
 				}
 
 				log.Println("Health Start Monitoring..")
-				health.StartMonit(runingSrvChan, &m)
-
+				health.StartMonit(runingSrvChan, &m, db)
 
 			case run := <-runingSrvChan:
 				m.Lock()
@@ -68,13 +73,14 @@ func main() {
 
 			}
 		}
-	}(runingSrvChan)
+	}(runingSrvChan, db)
 
 	restart <- true
 
 	<-done
 
 	log.Println("Releasing all the allocated resources")
+	db.Close()
 	// Stop the HotReload
 	clear <- true
 	// Gracefull Shutdown added.
