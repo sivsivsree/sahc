@@ -11,7 +11,6 @@ import (
 )
 
 // StartMonit will start monitoring the services defined
-
 func StartMonit(runningSrv chan<- data.HealthJobs, m *sync.Mutex, db *leveldb.DB) {
 
 	wg := sync.WaitGroup{}

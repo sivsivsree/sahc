@@ -8,6 +8,7 @@ import (
 	"sync"
 )
 
+// Start is used to bootstrap Hot-Reload and Health together
 func Start(db *leveldb.DB, restart chan bool) {
 	// run the service runner to check if the services are running or not.
 	activeSrvCh := make(chan data.HealthJobs, 100)
