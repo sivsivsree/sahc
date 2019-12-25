@@ -9,7 +9,7 @@ BINARY_NAME="sahc"
 
 build()
 {
-  $( ${GOBUILD} -o bin/${BINARY_NAME} -v ./cmd/sahc/main.go)
+  $( ${GOBUILD} -o bin/${BINARY_NAME} -v ./cmd/main.go)
 }
 
 go-test()
@@ -18,7 +18,7 @@ go-test()
 }
 
 go-run(){
-  SAHC_CONFIG=services.yaml go run ./cmd/sahc/main.go
+  SAHC_CONFIG=service.yaml go run ./cmd/main.go
 }
 
 go-clean(){

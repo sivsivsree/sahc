@@ -3,7 +3,6 @@ package configurations
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"github.com/sivsivsree/sahc/internal/data"
 	"github.com/sivsivsree/sahc/internal/storage"
 	"gopkg.in/yaml.v2"
@@ -25,7 +24,7 @@ func loadConfiguration(filename string) (*data.Configuration, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return conf, nil
 }
 
@@ -63,11 +62,12 @@ func GetConfiguration() (*data.Configuration, error) {
 }
 
 // HotReload is used to periodically check the file changes.
-func HotReload() chan bool {
+func HotReload(change chan bool) chan bool {
 
 	if err := Init(); err != nil {
 		log.Fatal("[Configuration error]", err)
 	}
+
 	// How often to fire the passed in function
 	// in milliseconds
 	interval := 5 * time.Second
@@ -102,15 +102,20 @@ func HotReload() chan bool {
 
 			case <-clear:
 				ticker.Stop()
+				log.Println("[HotReload]", "Stopped")
 				return
 
 			case val := <-hash:
+
 				log.Println("File change detected, updating configurations", val)
 				if err := Init(); err != nil {
-					fmt.Println("[Configuration error] ", err)
+					log.Println("[Configuration error] ", err)
 					clear <- true
 				}
 				prevHash = val
+				// change should be triggered last.
+				change <- true
+
 			}
 
 		}
