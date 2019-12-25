@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/sivsivsree/sahc/internal/data"
-	"github.com/sivsivsree/sahc/internal/storage"
 	"github.com/syndtr/goleveldb/leveldb"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -34,8 +33,8 @@ func getConfigPath() string {
 	return confPath
 }
 
-// Init is the configuration
-func Init(db *leveldb.DB) error {
+// initialize is the configuration
+func initialize(db *leveldb.DB) error {
 
 	conf, err := loadConfiguration(getConfigPath())
 
@@ -44,7 +43,7 @@ func Init(db *leveldb.DB) error {
 		return err
 	}
 
-	if err = storage.SaveConfigurations(*conf, db); err != nil {
+	if err = conf.SaveConfigurations(db); err != nil {
 		return err
 	}
 
@@ -54,7 +53,7 @@ func Init(db *leveldb.DB) error {
 // HotReload is used to periodically check the file changes.
 func HotReload(change chan bool, db *leveldb.DB) chan bool {
 
-	if err := Init(db); err != nil {
+	if err := initialize(db); err != nil {
 		log.Fatal("[Configuration error]", err)
 	}
 
@@ -96,7 +95,7 @@ func HotReload(change chan bool, db *leveldb.DB) chan bool {
 			case val := <-hash:
 
 				log.Println("File change detected, updating configurations", val)
-				if err := Init(db); err != nil {
+				if err := initialize(db); err != nil {
 					log.Println("[Configuration error] ", err)
 					clear <- true
 				}
@@ -112,6 +111,9 @@ func HotReload(change chan bool, db *leveldb.DB) chan bool {
 	return clear
 
 }
+
+
+
 
 func md5sum(filePath string) (result string, err error) {
 	file, err := os.Open(filePath)

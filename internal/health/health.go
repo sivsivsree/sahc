@@ -3,7 +3,6 @@ package health
 import (
 	"fmt"
 	"github.com/sivsivsree/sahc/internal/data"
-	"github.com/sivsivsree/sahc/internal/storage"
 	"github.com/syndtr/goleveldb/leveldb"
 	"log"
 	"net"
@@ -20,7 +19,7 @@ func StartMonit(runningSrv chan<- data.HealthJobs, m *sync.Mutex, db *leveldb.DB
 	log.Println("[StartMonit]", "Load config")
 	m.Lock()
 
-	config, err := storage.GetConfiguration(db)
+	config, err := (&data.Configuration{}).GetConfiguration(db)
 
 	if err != nil {
 		log.Println("[StartMonit]", err)
@@ -71,7 +70,7 @@ func runner(config *data.Configuration, sid int, db *leveldb.DB) chan bool {
 
 			case <-clear:
 				ticker.Stop()
-				log.Println("[runner]", "Stopped", sid, service.Name, service.Status)
+				log.Println("[STOP]", "background scheduler", sid, service.Name, service.Status)
 				close(clear)
 				return
 
@@ -96,8 +95,9 @@ func statusCheckAndUpdate(conf *data.Configuration, sid int, wg *sync.WaitGroup,
 		//fmt.Println("Opened", net.JoinHostPort("localhost", "8080"))
 
 	} else {
-		//fmt.Println(err)
+
 		status = false
+
 		//fmt.Println("Failed", net.JoinHostPort("localhost", "8080"))
 
 	}
@@ -106,7 +106,11 @@ func statusCheckAndUpdate(conf *data.Configuration, sid int, wg *sync.WaitGroup,
 		fmt.Println("Error", err)
 	}
 
-	fmt.Println("Status check | ", "Service ID:", sid, " |  Status:", conf.Services[sid].Status, " |  Name:", conf.Services[sid].Name)
+	if !status {
+		log.Println("[Status check] ", "Service ID:", sid, " |  Status:", conf.Services[sid].Status, " |  Name:", conf.Services[sid].Name)
+	}
+
+	//fmt.Println("Status check | ", "Service ID:", sid, " |  Status:", conf.Services[sid].Status, " |  Name:", conf.Services[sid].Name)
 
 	wg.Done()
 }
