@@ -33,6 +33,7 @@ func (conf *Configuration) UpdateStatus(db *leveldb.DB, id int, status bool) err
 	return db.Put([]byte(CONF_KEY), confByte, nil)
 }
 
+// SaveConfigurations is used to Save the conf instance to leveldb
 func (conf *Configuration) SaveConfigurations(db *leveldb.DB) error {
 
 	log.Println("[SaveConfigurations]", "Saving..")
