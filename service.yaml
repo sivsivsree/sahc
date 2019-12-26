@@ -2,7 +2,7 @@ version: 0.1
 services:
   - name: localhost:8000
     interval: 1
-  - name: facebook.com:443
+  - name: localhost:443
     interval: 5
-  - name: facebook.com:80
+  - name: localhost:80
     interval: 5

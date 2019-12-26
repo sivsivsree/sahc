@@ -19,7 +19,7 @@ type Configuration struct {
 	Services []Services `yaml:"services";json:"services"`
 }
 
-// UpdateStatus is used to update the health availabilty status of service
+// UpdateStatus is used to update the health availability status of service
 func (conf *Configuration) UpdateStatus(db *leveldb.DB, id int, status bool) error {
 
 	conf.Services[id].Status = status
@@ -46,7 +46,8 @@ func (conf *Configuration) SaveConfigurations(db *leveldb.DB) error {
 
 }
 
-func (c Configuration) GetConfiguration(db *leveldb.DB) (*Configuration, error) {
+// GetConfiguration is used to get configuration from leveldb
+func (conf Configuration) GetConfiguration(db *leveldb.DB) (*Configuration, error) {
 
 	//defer func(db *leveldb.DB) {
 	//	//err := db.Close()
@@ -57,9 +58,9 @@ func (c Configuration) GetConfiguration(db *leveldb.DB) (*Configuration, error) 
 	if err != nil {
 		return nil, err
 	}
-	var conf Configuration
+	var c Configuration
 
-	_ = json.Unmarshal(confByte, &conf)
+	_ = json.Unmarshal(confByte, &c)
 
-	return &conf, nil
+	return &c, nil
 }

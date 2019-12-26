@@ -112,9 +112,6 @@ func HotReload(change chan bool, db *leveldb.DB) chan bool {
 
 }
 
-
-
-
 func md5sum(filePath string) (result string, err error) {
 	file, err := os.Open(filePath)
 	if err != nil {

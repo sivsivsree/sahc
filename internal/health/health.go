@@ -84,32 +84,16 @@ func runner(config *data.Configuration, sid int, db *leveldb.DB) chan bool {
 
 func statusCheckAndUpdate(conf *data.Configuration, sid int, wg *sync.WaitGroup, db *leveldb.DB) {
 
-	status := false
 	timeout := time.Second
 	conn, _ := net.DialTimeout("tcp", conf.Services[sid].Name, timeout)
 
 	if conn != nil {
 		defer conn.Close()
-		status = true
-		//fmt.Println("Opened", net.JoinHostPort("localhost", "8080"))
-
-	} else {
-
-		status = false
-
-		//fmt.Println("Failed", net.JoinHostPort("localhost", "8080"))
-
 	}
-
-	if err := conf.UpdateStatus(db, sid, status); err != nil {
+	if err := conf.UpdateStatus(db, sid, conn != nil); err != nil {
 		fmt.Println("Error", err)
 	}
-
-	if !status {
-		log.Println("[Status check] ", "Service ID:", sid, " |  Status:", conf.Services[sid].Status, " |  Name:", conf.Services[sid].Name)
-	}
-
-	//fmt.Println("Status check | ", "Service ID:", sid, " |  Status:", conf.Services[sid].Status, " |  Name:", conf.Services[sid].Name)
+	log.Println("[Status check] ", "Service ID:", sid, " |  Status:", conf.Services[sid].Status, " |  Name:", conf.Services[sid].Name)
 
 	wg.Done()
 }

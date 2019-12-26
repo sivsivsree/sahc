@@ -33,7 +33,7 @@ func main() {
 
 	sahc.Start(db, restart)
 
-	// need to kickstart the service initally
+	// need to kick start the service initially
 	restart <- true
 
 	<-done
@@ -42,7 +42,7 @@ func main() {
 
 	// Stop the HotReload
 
-	// Gracefull Shutdown added.
+	// Graceful Shutdown added.
 	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer func() {
 		clear <- true
